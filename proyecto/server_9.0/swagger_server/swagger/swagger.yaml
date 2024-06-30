@@ -1,0 +1,980 @@
+openapi: 3.0.3
+info:
+  title: Control de sondas
+  contact:
+    email: xxx@gmail.com
+  version: 1.0.0
+servers:
+- url: https://api.probesManager.com/v1
+  description: Manejar diferentes sondas
+tags:
+- name: probes
+  description: Acceso al control de sondas
+- name: probes-groups
+  description: Acceso al control de grupos
+- name: login
+  description: verificacion de usuarios para el acceso a la aplicación
+paths:
+  /probes:
+    get:
+      tags:
+      - probes
+      summary: Lista y filtra entre todas las sondas
+      description: "Lista todas las sondas, pudiendo filtrar su nombre para obtener\
+        \ un resultado más óptimo"
+      operationId: probelist
+      parameters:
+      - name: Nombre
+        in: query
+        description: Nombre de la sonda a devolver
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: is_active
+        in: query
+        description: Filtra los grupos por su estado activo o inactivo
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/probe'
+                x-content-type: application/json
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/probe'
+        "400":
+          description: Invalid name value
+      x-openapi-router-controller: swagger_server.controllers.probes_controller
+    post:
+      tags:
+      - probes
+      summary: Registra una nueva sonda
+      description: Registra una nueva sonda para operar
+      operationId: probe_register
+      parameters:
+      - name: Nombre
+        in: query
+        description: Nombre de la sonda
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: IP
+        in: query
+        description: IP de la sonda
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "400":
+          description: Invalid name value
+        "422":
+          description: Validation exception
+      x-openapi-router-controller: swagger_server.controllers.probes_controller
+  /probes/{Id}:
+    get:
+      tags:
+      - probes
+      summary: Devuelve la sonda seleccionada
+      description: Devuelve la sonda seleccionada
+      operationId: probeid
+      parameters:
+      - name: Id
+        in: path
+        description: Id de la sonda
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/probe'
+        "400":
+          description: Invalid id value
+      x-openapi-router-controller: swagger_server.controllers.probes_controller
+    put:
+      tags:
+      - probes
+      summary: Actualizar una sonda existente
+      description: Actualizar una sonda existente dada el Id
+      operationId: update_probe
+      parameters:
+      - name: Id
+        in: path
+        description: ID de la sonda a actualizar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/probe'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/probe'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/probe'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Probe not found
+        "422":
+          description: Validation exception
+      x-openapi-router-controller: swagger_server.controllers.probes_controller
+    delete:
+      tags:
+      - probes
+      summary: Elimina una sonda
+      description: Elimina una sonda
+      operationId: elimina_sonda
+      parameters:
+      - name: Id
+        in: path
+        description: Id de la sonda a eliminar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: Content deleted
+        "404":
+          description: Resource not found
+      x-openapi-router-controller: swagger_server.controllers.probes_controller
+  /probes/{Id}/current-job:
+    get:
+      tags:
+      - probes
+      summary: Endpoint donde la sonda preguntará por su trabajo a hacer
+      description: Devuelve el trabajo realizado por la sonda
+      operationId: get_probe_job
+      parameters:
+      - name: Id
+        in: path
+        description: ID de la sonda a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSpecification'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/JobSpecification'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Probe not found
+      x-openapi-router-controller: swagger_server.controllers.probes_controller
+  /probes-groups:
+    get:
+      tags:
+      - probes-groups
+      summary: Lista y filtra entre todos los grupos de sondas
+      description: "Lista todos los grupos de sondas, pudiendo filtrar por nombre\
+        \ para obtener un resultado más óptimo. También permite filtrar grupos por\
+        \ su estado activo/inactivo."
+      operationId: probe_group_list
+      parameters:
+      - name: Nombre
+        in: query
+        description: Nombre del grupo de sondas a devolver
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: is_active
+        in: query
+        description: Filtra los grupos por su estado activo o inactivo
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/groups'
+                x-content-type: application/json
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/groups'
+        "400":
+          description: Invalid input value
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+    post:
+      tags:
+      - probes-groups
+      summary: Registra un nuevo grupo de sondas
+      description: Registra un nuevo grupo de sondas
+      operationId: probe_group_register
+      parameters:
+      - name: Nombre
+        in: query
+        description: Nombre de la sonda a devolver
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      requestBody:
+        description: Añade un grupo de sondas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/probe'
+        required: true
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+        "422":
+          description: Validation exception
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+  /probes-groups/{groupId}:
+    get:
+      tags:
+      - probes-groups
+      summary: Accede a la información del grupo de sondas
+      description: Devuelve la información del grupo de sondas
+      operationId: get_probe_group_information
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo de sondas a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/groups'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/groups'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Group not found
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+    put:
+      tags:
+      - probes-groups
+      summary: Actualizar un grupo de sondas existente
+      description: Actualizar un grupo de sondas existente dado el ID
+      operationId: update_group
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo de sondas a actualizar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: Añade un grupo de sondas
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/groups'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/groups'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/groups'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Group not found
+        "422":
+          description: Validation exception
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+    delete:
+      tags:
+      - probes-groups
+      summary: Eliminar un grupo de sondas
+      description: Eliminar un grupo de sondas dado el ID
+      operationId: delete_group
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo de sondas a eliminar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: Content deleted
+        "404":
+          description: Resource not found
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+  /probes-groups/{groupId}/jobs:
+    get:
+      tags:
+      - probes-groups
+      summary: Accede a todos los trabajos realizados por el grupo
+      description: Accede a todos los trabajos realizados por el grupo
+      operationId: get_group_job
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobSpecification'
+                x-content-type: application/json
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/JobSpecification'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Probe not found
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+    post:
+      tags:
+      - probes-groups
+      summary: Registra el trabajo al grupo
+      description: Registra el trabajo al grupo
+      operationId: create_job
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobSpecification'
+      responses:
+        "200":
+          description: ID del trabajo creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+        "400":
+          description: Error al recibir el json.
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+  /probes-groups/{groupId}/jobs/{jobId}:
+    get:
+      tags:
+      - probes-groups
+      summary: Accede a las especificaciones del trabajo
+      description: Devuelve el trabajo realizado por el grupo
+      operationId: get_job
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: jobId
+        in: path
+        description: ID del trabajo a gestionar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSpecification'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/JobSpecification'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Probe not found
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+  /probes-groups/{groupId}/jobs/{jobId}/scan:
+    get:
+      tags:
+      - probes-groups
+      summary: Descarga el archivo procesado resultante de una operación scan
+      description: Descarga el fichero resultante de una operación scan
+      operationId: get_scan
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: jobId
+        in: path
+        description: ID del trabajo a gestionar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Archivo descargado exitosamente
+          headers:
+            Content-Disposition:
+              description: Indica que el contenido es un archivo adjunto
+              style: simple
+              explode: false
+              schema:
+                type: string
+                example: attachment; filename="resultado_scan.zip"
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                x-content-type: application/octet-stream
+        "400":
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "404":
+          description: Archivo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_404'
+        "500":
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+    post:
+      tags:
+      - probes-groups
+      summary: Envía el fichero resultante de una operación scan
+      description: Envía el fichero resultante de una operación scan
+      operationId: send_work_scan
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: jobId
+        in: path
+        description: ID del trabajo a gestionar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/jobId_scan_body'
+        required: true
+      responses:
+        "200":
+          description: Archivo subido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+        "400":
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "500":
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+  /probes-groups/{groupId}/jobs/{jobId}/monitorize:
+    get:
+      tags:
+      - probes-groups
+      summary: Descarga el fichero resultante o el archivo procesado de una operación
+        monitorize
+      description: Descarga el fichero resultante o el archivo procesado de una operación
+        monitorize
+      operationId: get_monitorize
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: jobId
+        in: path
+        description: ID del trabajo a gestionar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Archivo descargado exitosamente
+          headers:
+            Content-Disposition:
+              description: Indica que el contenido es un archivo adjunto
+              style: simple
+              explode: false
+              schema:
+                type: string
+                example: attachment; filename="resultado_monitorize.zip"
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                x-content-type: application/octet-stream
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_4'
+        "400":
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "404":
+          description: Archivo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_404'
+        "500":
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+    post:
+      tags:
+      - probes-groups
+      summary: Envía el fichero resultante de una operación monitorize
+      description: Envía el fichero resultante de una operación monitorize
+      operationId: send_work_monitorize
+      parameters:
+      - name: groupId
+        in: path
+        description: ID del grupo a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: jobId
+        in: path
+        description: ID del trabajo a gestionar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/jobId_monitorize_body'
+        required: true
+      responses:
+        "200":
+          description: Archivo subido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+        "400":
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "500":
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      x-openapi-router-controller: swagger_server.controllers.probes_groups_controller
+components:
+  schemas:
+    probe:
+      type: object
+      properties:
+        id:
+          type: integer
+        Name:
+          type: string
+        LastRecordedIP:
+          type: string
+        InUse:
+          type: boolean
+        is_active:
+          type: boolean
+        Group_id:
+          type: integer
+      example:
+        is_active: true
+        Group_id: 6
+        InUse: true
+        id: 0
+        Name: Name
+        LastRecordedIP: LastRecordedIP
+      xml:
+        name: probe
+    Job:
+      type: object
+      properties:
+        JobID:
+          type: integer
+        BSSID:
+          type: string
+        ESSID:
+          type: string
+        Channel:
+          type: integer
+        WaveLenght:
+          type: string
+          enum:
+          - 2.4 GHz
+          - 5.0 GHz
+        group_id:
+          type: integer
+        Status:
+          type: string
+          enum:
+          - stop
+          - monitorize
+          - scan
+        created_at:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+          default: true
+        band:
+          type: string
+        cswitch:
+          type: integer
+        security:
+          type: string
+          enum:
+          - OPN
+          - WEP
+          - WPA
+          - WPA1
+          - WPA2
+          - WPA3
+          - OWE
+        wildcard:
+          type: string
+        associated_clients:
+          type: boolean
+          default: false
+        ChannelMode:
+          type: string
+          enum:
+          - ht20
+          - ht40-
+          - ht40+
+      example:
+        Status: stop
+        WaveLenght: 2.4 GHz
+        is_active: true
+        Channel: 6
+        created_at: 2000-01-23T04:56:07.000+00:00
+        associated_clients: false
+        wildcard: wildcard
+        security: OPN
+        ESSID: ESSID
+        cswitch: 5
+        BSSID: BSSID
+        group_id: 1
+        band: band
+        ChannelMode: ht20
+        JobID: 0
+    URL:
+      type: object
+      properties:
+        URL:
+          type: string
+          format: URL
+      example:
+        URL: URL
+    JobSpecification:
+      type: object
+      properties:
+        Job:
+          $ref: '#/components/schemas/Job'
+        URL:
+          $ref: '#/components/schemas/URL'
+      example:
+        Job:
+          Status: stop
+          WaveLenght: 2.4 GHz
+          is_active: true
+          Channel: 6
+          created_at: 2000-01-23T04:56:07.000+00:00
+          associated_clients: false
+          wildcard: wildcard
+          security: OPN
+          ESSID: ESSID
+          cswitch: 5
+          BSSID: BSSID
+          group_id: 1
+          band: band
+          ChannelMode: ht20
+          JobID: 0
+        URL:
+          URL: URL
+    NetworkDetail:
+      required:
+      - BSSID
+      type: object
+      properties:
+        BSSID:
+          type: string
+          description: La dirección MAC del punto de acceso.
+        ESSID:
+          type: string
+          description: El nombre de la red expuesto (SSID).
+        Security:
+          type: string
+          description: "Tipo de seguridad de la red, como WPA, WPA2."
+        Channel:
+          type: integer
+          description: El canal en el que opera la red.
+    groups:
+      type: object
+      properties:
+        id:
+          type: integer
+        Name:
+          type: string
+        probes_id:
+          type: array
+          example:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          items:
+            type: integer
+        is_active:
+          type: boolean
+      example:
+        is_active: true
+        id: 0
+        probes_id:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        Name: Name
+    inline_response_200:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "123456789"
+      example:
+        id: "123456789"
+    inline_response_200_1:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+      example:
+        id: "1"
+    inline_response_200_2:
+      type: object
+      properties:
+        job_id:
+          type: string
+      example:
+        job_id: job_id
+    inline_response_400:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: Parámetros de solicitud no válidos
+    inline_response_404:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: Archivo no encontrado
+    inline_response_500:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: Error interno del servidor
+    jobId_scan_body:
+      type: object
+      properties:
+        file:
+          type: string
+          description: Archivo resultante del trabajo de scan.
+          format: binary
+        probeId:
+          type: integer
+          description: Id de la sonda que sube el archivo.
+          format: int64
+    inline_response_200_3:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: Archivo subido correctamente
+      example:
+        mensaje: Archivo subido correctamente
+    inline_response_200_4:
+      type: object
+      properties:
+        networks:
+          type: array
+          items:
+            $ref: '#/components/schemas/NetworkDetail'
+    jobId_monitorize_body:
+      type: object
+      properties:
+        file:
+          type: string
+          description: Archivo resultante del trabajo de scan.
+          format: binary
+        probeId:
+          type: integer
+          description: Id de la sonda que sube el archivo.
+          format: int64
+
